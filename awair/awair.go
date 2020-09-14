@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 const (
@@ -29,14 +31,14 @@ type service struct {
 }
 
 func (c *Client) NewRequest(method, urlStr string) (*http.Request, error) {
-	url, err := c.baseUrl.Parse(urlStr)
+	fullUrl, err := c.baseUrl.Parse(urlStr)
 	if err != nil {
 		return nil, err
 	}
 
 	var buf io.ReadWriter
 
-	req, err := http.NewRequest(method, url.String(), buf)
+	req, err := http.NewRequest(method, fullUrl.String(), buf)
 	if err != nil {
 		return nil, err
 	}
@@ -57,11 +59,14 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*htt
 
 	defer resp.Body.Close()
 
+	body, _ := ioutil.ReadAll(resp.Body)
+	bodyStr := string(body)
+
 	if v != nil {
 		if w, ok := v.(io.Writer); ok {
 			io.Copy(w, resp.Body)
 		} else {
-			decErr := json.NewDecoder(resp.Body).Decode(v)
+			decErr := json.NewDecoder(strings.NewReader(bodyStr)).Decode(v)
 			if decErr == io.EOF {
 				decErr = nil // ignore EOF errors caused by empty response body
 			}

@@ -20,11 +20,11 @@ type Device struct {
 }
 
 type listDevicesResponse struct {
-	Devices []Device `json:"devices"`
+	Devices []*Device `json:"devices"`
 }
 
-func (d *DevicesService) List(ctx context.Context) ([]Device, *http.Response, error) {
-	req, err := d.client.NewRequest("GET", "v1/users/self/devices")
+func (d *DevicesService) List(ctx context.Context) ([]*Device, *http.Response, error) {
+	req, err := d.client.NewRequest("GET", "users/self/devices")
 
 	if err != nil {
 		return nil, nil, err
@@ -37,7 +37,7 @@ func (d *DevicesService) List(ctx context.Context) ([]Device, *http.Response, er
 		return nil, nil, err
 	}
 
-	var deviceResp []Device
+	var deviceResp []*Device
 	if devices != nil {
 		deviceResp = devices.Devices
 	}
