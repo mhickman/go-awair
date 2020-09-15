@@ -1,3 +1,3 @@
-# Awair-Go
+# go-awair
 
 A Go client for the Awair developer API.
