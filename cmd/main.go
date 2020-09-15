@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"go-awair/awair"
+	"github.com/mhickman/go-awair/awair"
 	"golang.org/x/oauth2"
 	"os"
 )

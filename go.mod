@@ -1,4 +1,4 @@
-module go-awair
+module github.com/mhickman/go-awair
 
 go 1.15
 
