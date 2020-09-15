@@ -4,10 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strings"
 )
 
 const (
@@ -23,7 +21,7 @@ type Client struct {
 	common    service
 	userAgent string
 
-	Devices *DevicesService
+	User *UserService
 }
 
 type service struct {
@@ -59,14 +57,11 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*htt
 
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
-	bodyStr := string(body)
-
 	if v != nil {
 		if w, ok := v.(io.Writer); ok {
 			io.Copy(w, resp.Body)
 		} else {
-			decErr := json.NewDecoder(strings.NewReader(bodyStr)).Decode(v)
+			decErr := json.NewDecoder(resp.Body).Decode(v)
 			if decErr == io.EOF {
 				decErr = nil // ignore EOF errors caused by empty response body
 			}
@@ -92,7 +87,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.common.client = c
 	c.userAgent = userAgent
 
-	c.Devices = (*DevicesService)(&c.common)
+	c.User = (*UserService)(&c.common)
 
 	return c
 }

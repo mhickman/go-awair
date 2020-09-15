@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestDevicesService_List(t *testing.T) {
+func TestUserService_ListDevices(t *testing.T) {
 	client, mux, teardown := setup()
 	defer teardown()
 
@@ -44,7 +44,7 @@ func TestDevicesService_List(t *testing.T) {
 		DeviceID:   int32Ptr(9999),
 	}
 
-	devices, _, err := client.Devices.List(context.Background())
+	devices, _, err := client.User.ListDevices(context.Background())
 
 	assert.NoError(t, err)
 
@@ -55,10 +55,10 @@ func TestDevicesService_List(t *testing.T) {
 
 	device := devices[0]
 
-	assert.Equal(t, *expectedDevice.Name, *device.Name)
+	assert.Equal(t, expectedDevice, device)
 }
 
-func TestDevicesService_List_Empty(t *testing.T) {
+func TestUserService_ListDevices_Empty(t *testing.T) {
 	client, mux, teardown := setup()
 	defer teardown()
 
@@ -67,10 +67,10 @@ func TestDevicesService_List_Empty(t *testing.T) {
 			t.Errorf("expected GET got %s", r.Method)
 		}
 
-		fmt.Fprint(w, "{}")
+		_, _ = fmt.Fprint(w, "{}")
 	})
 
-	devices, _, err := client.Devices.List(context.Background())
+	devices, _, err := client.User.ListDevices(context.Background())
 
 	if len(devices) > 0 {
 		t.Error("expected no devices")

@@ -27,7 +27,7 @@ func main() {
 
 	client := awair.NewClient(tc)
 
-	devices, _, err := client.Devices.List(ctx)
+	devices, _, err := client.User.ListDevices(ctx)
 
 	fmt.Printf("%+v\n", devices)
 	fmt.Println(err)
