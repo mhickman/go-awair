@@ -26,20 +26,59 @@ type listDevicesResponse struct {
 }
 
 // ListDevices returns a list of devices belonging to the user.
-// It uses /v1/users/self/devicesResponse
-func (d *UserService) ListDevices(ctx context.Context) ([]*Device, *http.Response, error) {
-	req, err := d.client.NewRequest(http.MethodGet, "users/self/devices")
+// It uses GET /v1/users/self/devicesResponse
+func (u *UserService) ListDevices(ctx context.Context) ([]*Device, *http.Response, error) {
+	req, err := u.client.NewRequest(http.MethodGet, "users/self/devices")
 
 	if err != nil {
 		return nil, nil, err
 	}
 
 	devicesResponse := new(listDevicesResponse)
-	resp, err := d.client.Do(ctx, req, devicesResponse)
+	resp, err := u.client.Do(ctx, req, devicesResponse)
 
 	if err != nil {
 		return nil, nil, err
 	}
 
 	return devicesResponse.Devices, resp, err
+}
+
+type Usage struct {
+	Scope *string `json:"scope,omitempty"`
+	Usage *int32  `json:"usage,omitempty"`
+}
+
+type UserInfo struct {
+	ID *string `json:"id,omitempty"`
+
+	FirstName *string `json:"firstName,omitempty"`
+	LastName  *string `json:"lastName,omitempty"`
+
+	DOBDay   *int `json:"dobDay,omitempty"`
+	DOBMonth *int `json:"dobMonth,omitempty"`
+	DOBYear  *int `json:"dobYear,omitempty"`
+
+	Usages []*Usage `json:"usages,omitempty"`
+	Tier   *string  `json:"tier,omitempty"`
+	Email  *string  `json:"email,omitempty"`
+}
+
+// UserInfo returns info about the user.
+// It uses GET /v1/users/self
+func (u *UserService) UserInfo(ctx context.Context) (*UserInfo, *http.Response, error) {
+	req, err := u.client.NewRequest(http.MethodGet, "users/self")
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	userInfo := new(UserInfo)
+	resp, err := u.client.Do(ctx, req, userInfo)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return userInfo, resp, err
 }

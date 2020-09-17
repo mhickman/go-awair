@@ -13,9 +13,7 @@ func TestUserService_ListDevices(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/users/self/devices", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			t.Errorf("expected GET got %s", r.Method)
-		}
+		assert.Equal(t, http.MethodGet, r.Method)
 
 		fmt.Fprint(w, `{
     "devices": [
@@ -63,9 +61,7 @@ func TestUserService_ListDevices_Empty(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/users/self/devices", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			t.Errorf("expected GET got %s", r.Method)
-		}
+		assert.Equal(t, http.MethodGet, r.Method)
 
 		_, _ = fmt.Fprint(w, "{}")
 	})
@@ -79,4 +75,67 @@ func TestUserService_ListDevices_Empty(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+}
+
+func TestUserService_UserInfo(t *testing.T) {
+	client, mux, teardown := setup()
+	defer teardown()
+
+	mux.HandleFunc("/users/self", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+
+		fmt.Fprint(w, `{
+    "dobDay": 1,
+    "usages": [
+        {
+            "scope": "USER_DEVICE_LIST",
+            "usage": 14
+        },
+        {
+            "scope": "USER_INFO",
+            "usage": 1
+        }
+    ],
+    "tier": "Hobbyist",
+    "email": "the@email.com",
+    "dobYear": 1955,
+    "permissions": [
+        {
+            "scope": "FIFTEEN_MIN",
+            "quota": 100
+		}
+    ],
+    "dobMonth": 2,
+    "sex": "UNKNOWN",
+    "lastName": "Smith",
+    "firstName": "John",
+    "id": "12345"
+}`)
+	})
+
+	expectedUserInfo := &UserInfo{
+		ID:        stringPtr("12345"),
+		FirstName: stringPtr("John"),
+		LastName:  stringPtr("Smith"),
+		DOBDay:    intPtr(1),
+		DOBMonth:  intPtr(2),
+		DOBYear:   intPtr(1955),
+		Usages: []*Usage{
+			{
+				Scope: stringPtr("USER_DEVICE_LIST"),
+				Usage: int32Ptr(14),
+			},
+			{
+				Scope: stringPtr("USER_INFO"),
+				Usage: int32Ptr(1),
+			},
+		},
+		Tier:  stringPtr("Hobbyist"),
+		Email: stringPtr("the@email.com"),
+	}
+
+	info, _, err := client.User.UserInfo(context.Background())
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedUserInfo, info)
 }
