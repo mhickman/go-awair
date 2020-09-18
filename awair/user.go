@@ -2,6 +2,7 @@ package awair
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 )
 
@@ -44,11 +45,13 @@ func (u *UserService) ListDevices(ctx context.Context) ([]*Device, *http.Respons
 	return devicesResponse.Devices, resp, err
 }
 
+// Usage represents usages of an API endpoint.
 type Usage struct {
 	Scope *string `json:"scope,omitempty"`
 	Usage *int32  `json:"usage,omitempty"`
 }
 
+// UserInfo contains information about the requested user.
 type UserInfo struct {
 	ID *string `json:"id,omitempty"`
 
@@ -64,9 +67,9 @@ type UserInfo struct {
 	Email  *string  `json:"email,omitempty"`
 }
 
-// UserInfo returns info about the user.
+// GetUserInfo returns info about the user.
 // It uses GET /v1/users/self
-func (u *UserService) UserInfo(ctx context.Context) (*UserInfo, *http.Response, error) {
+func (u *UserService) GetUserInfo(ctx context.Context) (*UserInfo, *http.Response, error) {
 	req, err := u.client.NewRequest(http.MethodGet, "users/self")
 
 	if err != nil {
@@ -81,4 +84,28 @@ func (u *UserService) UserInfo(ctx context.Context) (*UserInfo, *http.Response, 
 	}
 
 	return userInfo, resp, err
+}
+
+type listDeviceAPIUsagesResponse struct {
+	Usages []*Usage `json:"usages,omitempty"`
+}
+
+// ListDeviceAPIUsages returns the Usages for a service deviceType + deviceID pair.
+// It uses GET v1/users/self/devices/{{device_type}}/{{device_id}}/api-usages
+func (u *UserService) ListDeviceAPIUsages(ctx context.Context, deviceType, deviceID string) ([]*Usage, *http.Response, error) {
+	url := fmt.Sprintf("users/self/devices/%v/%v/api-usages", deviceType, deviceID)
+	req, err := u.client.NewRequest(http.MethodGet, url)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	usages := new(listDeviceAPIUsagesResponse)
+	resp, err := u.client.Do(ctx, req, usages)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return usages.Usages, resp, err
 }

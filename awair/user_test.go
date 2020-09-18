@@ -77,7 +77,7 @@ func TestUserService_ListDevices_Empty(t *testing.T) {
 	}
 }
 
-func TestUserService_UserInfo(t *testing.T) {
+func TestUserService_GetUserInfo(t *testing.T) {
 	client, mux, teardown := setup()
 	defer teardown()
 
@@ -134,8 +134,38 @@ func TestUserService_UserInfo(t *testing.T) {
 		Email: stringPtr("the@email.com"),
 	}
 
-	info, _, err := client.User.UserInfo(context.Background())
+	info, _, err := client.User.GetUserInfo(context.Background())
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedUserInfo, info)
+}
+
+func TestUserService_ListDeviceAPIUsages(t *testing.T) {
+	client, mux, teardown := setup()
+	defer teardown()
+
+	mux.HandleFunc("/users/self/devices/device-type/device-id/api-usages", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+
+		_, _ = fmt.Fprint(w, `{
+  "usages": [
+    {
+      "scope": "FIFTEEN_MIN",
+      "usage": 1
+    }
+  ]
+}`)
+	})
+
+	expectedUsages := []*Usage{
+		{
+			Scope: stringPtr("FIFTEEN_MIN"),
+			Usage: int32Ptr(1),
+		},
+	}
+
+	usages, _, err := client.User.ListDeviceAPIUsages(context.Background(), "device-type", "device-id")
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedUsages, usages)
 }
